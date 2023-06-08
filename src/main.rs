@@ -1,6 +1,7 @@
 use std::io::{Write, Read};
 use std::{env, fs::File};
 use std::net::TcpStream;
+use ntrip_client::rtcm_parser::RtcmParser;
 
 fn print_hex(buf: [u8; 256], width: usize) {
     for(i, v) in buf.iter().enumerate() {
@@ -34,6 +35,9 @@ fn main() {
     println!("- Address: {address}");
     println!("- Mountpoint: {mountpoint}");
 
+    // Prepare RTCM parser
+    let mut parser = RtcmParser::new();
+
     // Open connection
     if let Ok(mut stream) = TcpStream::connect(address) {
         // Send GET request
@@ -45,6 +49,8 @@ fn main() {
                 let mut buffer: [u8; 256] = [0; 256];
                 while let Ok(_) = stream.read_exact(&mut buffer) {
                     print_hex(buffer, 8);
+
+                    parser.parse(&mut buffer.to_vec());
                     
                     // Write file
                     if let Some(mut file) = output_file.as_ref() {

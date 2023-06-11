@@ -21,7 +21,7 @@ pub mod rtcm_parser {
             // Update buffer
             self.buffer.append(input);
 
-            let mut result: Vec<Vec<u8>> = vec![vec![]];
+            let mut result: Vec<Vec<u8>> =  Vec::new();
 
             // Scan for RTCM preamble
             let RTCM_3_2_PREAMBLE = 0b11010011;
@@ -45,7 +45,7 @@ pub mod rtcm_parser {
                 println!("RTCM length: {rtcm_length}");
 
                 // Compute the checksum
-                self.crc24.digest(&self.buffer[i + 3..i + 3 + rtcm_length]);
+                self.crc24.digest(&self.buffer[i..i + 3 + rtcm_length]);
                 let checksum_computed = self.crc24.get_crc();
                 self.crc24.reset();
                 let checksum_message = (u64::from(self.buffer[i + 3 + rtcm_length]) << 16)
@@ -54,6 +54,10 @@ pub mod rtcm_parser {
 
                 if checksum_computed == checksum_message {
                     println!("RTCM message found");
+                }
+                else{
+                    // Bad checksum
+                    continue;
                 }
 
                 result.push(self.buffer[i..i + 6 + rtcm_length].to_vec());

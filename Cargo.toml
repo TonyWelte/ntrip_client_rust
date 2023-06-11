@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 crc-any = "2.4.3"
+itertools = "0.10.5"

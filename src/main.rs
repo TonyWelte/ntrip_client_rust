@@ -1,9 +1,11 @@
+use std::collections::HashMap;
 use std::io::{Write, Read};
 use std::{env, fs::File};
 use std::net::TcpStream;
 use ntrip_client::rtcm_parser::RtcmParser;
+use itertools::Itertools;
 
-fn print_hex(buf: [u8; 256], width: usize) {
+fn print_hex(buf: &[u8], width: usize) {
     for(i, v) in buf.iter().enumerate() {
         if i != 0 && i % width == 0 {
             println!("");
@@ -46,11 +48,28 @@ fn main() {
         // Read stream
         match stream.write_all(&request.as_bytes()) {
             Ok(_) => {
+                let mut received_msg_id: HashMap<u16, isize> = HashMap::new();
+
                 let mut buffer: [u8; 256] = [0; 256];
                 while let Ok(_) = stream.read_exact(&mut buffer) {
-                    print_hex(buffer, 8);
+                    // print_hex(buffer, 8);
 
-                    parser.parse(&mut buffer.to_vec());
+                    let messages = parser.parse(&mut buffer.to_vec());
+
+                    for msg in &messages {
+                        let msg_id = u16::from(msg[3]) << 4 | (u16::from(msg[4]) >> 4);
+                        *received_msg_id.entry(msg_id).or_insert(0) +=1;
+                    }
+
+                    for msg in &messages {
+                        print_hex(&msg[..], 16);
+                    }
+
+                    println!("Received messages:");
+                    for id  in received_msg_id.keys().sorted() {
+                        let value = received_msg_id[id];
+                        println!("  - {id}: {value}");
+                    }
                     
                     // Write file
                     if let Some(mut file) = output_file.as_ref() {

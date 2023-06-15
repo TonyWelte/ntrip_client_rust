@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rtcm_parser = {git="https://github.com/TonyWelte/rtcm_parser.git"}
 crc-any = "2.4.3"
 itertools = "0.10.5"

@@ -1,6 +1,6 @@
 use crc_any::CRC;
 
-pub mod rtcm_parser {
+pub mod ntrip_client {
 
     pub struct RtcmParser {
         buffer: Vec<u8>,
@@ -21,7 +21,7 @@ pub mod rtcm_parser {
             // Update buffer
             self.buffer.append(input);
 
-            let mut result: Vec<Vec<u8>> =  Vec::new();
+            let mut result: Vec<Vec<u8>> = Vec::new();
 
             // Scan for RTCM preamble
             let RTCM_3_2_PREAMBLE = 0b11010011;
@@ -32,7 +32,7 @@ pub mod rtcm_parser {
                     continue;
                 }
 
-                println!("RTCM Preamble found");
+                // println!("RTCM Preamble found");
 
                 // Read message length (stored in 10 bits)
                 let rtcm_length = ((usize::from(self.buffer[i + 1]) << 8)
@@ -42,7 +42,7 @@ pub mod rtcm_parser {
                     continue; // This might not be a real message so the rest of the buffer still need to be checked
                 }
 
-                println!("RTCM length: {rtcm_length}");
+                // println!("RTCM length: {rtcm_length}");
 
                 // Compute the checksum
                 self.crc24.digest(&self.buffer[i..i + 3 + rtcm_length]);
@@ -53,9 +53,8 @@ pub mod rtcm_parser {
                     + u64::from(self.buffer[i + 3 + rtcm_length + 2]);
 
                 if checksum_computed == checksum_message {
-                    println!("RTCM message found");
-                }
-                else{
+                    // println!("RTCM message found");
+                } else {
                     // Bad checksum
                     continue;
                 }
@@ -67,10 +66,9 @@ pub mod rtcm_parser {
             self.buffer.drain(..last_i);
 
             let result_length = result.len();
-            println!("{result_length} messages found");
+            // println!("{result_length} messages found");
 
             return result;
         }
     }
-
 }

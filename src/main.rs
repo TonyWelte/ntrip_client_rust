@@ -1,12 +1,12 @@
+use ntrip_client::ntrip_client::RtcmParser;
+use rtcm_parser::Rtcm;
 use std::collections::HashMap;
-use std::io::{Write, Read};
-use std::{env, fs::File};
+use std::io::{Read, Write};
 use std::net::TcpStream;
-use ntrip_client::rtcm_parser::RtcmParser;
-use itertools::Itertools;
+use std::{env, fs::File};
 
 fn print_hex(buf: &[u8], width: usize) {
-    for(i, v) in buf.iter().enumerate() {
+    for (i, v) in buf.iter().enumerate() {
         if i != 0 && i % width == 0 {
             println!("");
         }
@@ -17,22 +17,21 @@ fn print_hex(buf: &[u8], width: usize) {
 
 fn main() {
     // Arguments
-    let args: Vec<String>  = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
     let address = &args[1];
     let mountpoint = &args[2];
-    
+
     // Optional save file
     let mut output_file = if args.len() == 4 {
         match File::create(&args[3]) {
             Ok(file) => Some(file),
-            Error => None
+            Error => None,
         }
-    }
-    else {
+    } else {
         None
     };
-    
+
     println!("Attempting connection:");
     println!("- Address: {address}");
     println!("- Mountpoint: {mountpoint}");
@@ -43,7 +42,8 @@ fn main() {
     // Open connection
     if let Ok(mut stream) = TcpStream::connect(address) {
         // Send GET request
-        let request = format!("GET /{mountpoint} HTTP/1.0\r\nUser-Agent: NTRIP ntrip_client_rust\r\n\r\n");
+        let request =
+            format!("GET /{mountpoint} HTTP/1.0\r\nUser-Agent: NTRIP ntrip_client_rust\r\n\r\n");
 
         // Read stream
         match stream.write_all(&request.as_bytes()) {
@@ -57,20 +57,53 @@ fn main() {
                     let messages = parser.parse(&mut buffer.to_vec());
 
                     for msg in &messages {
-                        let msg_id = u16::from(msg[3]) << 4 | (u16::from(msg[4]) >> 4);
-                        *received_msg_id.entry(msg_id).or_insert(0) +=1;
+                        // Parse message content (skipping preample and checksum)
+                        let rtcm = Rtcm::parse(&msg[3..msg.len() - 3]).unwrap();
+                        let msg_id = match rtcm {
+                            Rtcm::Rtcm1001(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.header.message_number
+                            }
+                            Rtcm::Rtcm1002(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.header.message_number
+                            }
+                            Rtcm::Rtcm1003(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.header.message_number
+                            }
+                            Rtcm::Rtcm1004(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.header.message_number
+                            }
+                            Rtcm::Rtcm1005(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.message_number
+                            }
+                            Rtcm::Rtcm1006(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.message_number
+                            }
+                            Rtcm::RtcmMSM7(rtcm) => {
+                                println!("{rtcm:?}");
+                                rtcm.header.message_number
+                            }
+                            Rtcm::UnsupportedType(id) => id,
+                        };
+
+                        *received_msg_id.entry(msg_id).or_insert(0) += 1;
                     }
 
-                    for msg in &messages {
-                        print_hex(&msg[..], 16);
-                    }
+                    // for msg in &messages {
+                    //     print_hex(&msg[..], 16);
+                    // }
 
-                    println!("Received messages:");
-                    for id  in received_msg_id.keys().sorted() {
-                        let value = received_msg_id[id];
-                        println!("  - {id}: {value}");
-                    }
-                    
+                    // println!("Received messages:");
+                    // for id in received_msg_id.keys().sorted() {
+                    //     let value = received_msg_id[id];
+                    //     println!("  - {id}: {value}");
+                    // }
+
                     // Write file
                     if let Some(mut file) = output_file.as_ref() {
                         file.write_all(&buffer[..]);
@@ -81,6 +114,5 @@ fn main() {
                 eprintln!("Error: {error}");
             }
         }
-
     }
 }

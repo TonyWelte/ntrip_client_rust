@@ -1,5 +1,5 @@
-use ntrip_client::ntrip_client::RtcmParser;
-use rtcm_parser::Rtcm;
+use rtcm_parser::rtcm_parser::Rtcm;
+use rtcm_parser::rtcm_parser::RtcmParser;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::TcpStream;
@@ -109,10 +109,13 @@ fn main() {
                         file.write_all(&buffer[..]);
                     }
                 }
+                println!("End of reading");
             }
             Err(error) => {
                 eprintln!("Error: {error}");
             }
         }
+    } else {
+        println!("Failed to connect to the server");
     }
 }

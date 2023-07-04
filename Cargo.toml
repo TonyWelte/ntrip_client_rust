@@ -3,9 +3,10 @@ name = "ntrip_client"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 rtcm_parser = {git="https://github.com/TonyWelte/rtcm_parser.git"}
-crc-any = "2.4.3"
+# rtcm_parser = {path="../rtcm_parser"}
 itertools = "0.10.5"
+base64 = "0.21.2"
+tokio = { version = "1.28.2", features = ["full"] }
+deku = "0.16.0"

@@ -15,9 +15,11 @@ The following features are planned for future versions of the program:
 
 - [ ] Parsing the sourcetable: The program will be able to parse the sourcetable received from the NTRIP server. This will allow you to view information about available mountpoints and their characteristics.
 
-- [ ] Parsing RTCM messages for analysis: The program will provide functionality to parse individual RTCM messages received from the NTRIP server. This will enable you to analyze the content of the messages and extract relevant information.
+- [ ] ~~Parsing RTCM messages for analysis: The program will provide functionality to parse individual RTCM messages received from the NTRIP server. This will enable you to analyze the content of the messages and extract relevant information.~~ (see [rtcm_parser](https://github.com/TonyWelte/rtcm_parser))
 
 - [ ] Multiple connections: Currently, the program supports a single connection to an NTRIP server. In future updates, the program will be enhanced to support multiple simultaneous connections. This will allow you to connect to and receive data from multiple NTRIP servers simultaneously.
+
+- [ ] Add support for username/password protected caster 
 
 ## Getting Started
 
@@ -41,10 +43,10 @@ To run the program, follow these steps:
 4. Run the program: Execute the compiled binary to run the program, passing the necessary arguments.
 
    ```bash
-   $ cargo run caster.ntrip.com:2101 QWERTY
+   $ cargo run caster.ntrip.com 2101 QWERTY username password [output_file]
    ```
 
-   Replace `caster.ntrip.com:2101` with the address and port of the NTRIP server you want to connect to, and `QWERTY` with the mountpoint you wish to use.
+   Replace `caster.ntrip.com` with the address and `2101` with the port port of the NTRIP server you want to connect to, and `QWERTY` with the mountpoint you wish to use. The `username` and `password` are placeholders and not currently implemented. An optional `output_file` can be provided.
 
 ## Configuration
 
